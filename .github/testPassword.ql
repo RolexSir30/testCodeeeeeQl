@@ -1,10 +1,27 @@
-import python
+/**
+ * @name Clear-text logging of sensitive information
+ * @description Logging sensitive information without encryption or hashing can
+ *              expose it to an attacker.
+ * @kind path-problem
+ * @problem.severity error
+ * @security-severity 7.5
+ * @precision high
+ * @id py/clear-text-logging-sensitive-data
+ * @tags security
+ *       external/cwe/cwe-312
+ *       external/cwe/cwe-359
+ *       external/cwe/cwe-532
+ */
 
-
-from StrConst s
-where
-  // Check if the string contains keywords like "password" or "pwd"
-  s.getValue().regexpMatch("(?i).*\\b(password|pwd|passwd)\\b.*") and
-  // Exclude empty strings
-  not s.getValue() = ""
-select s, "Avoid using plaintext passwords in your code. Consider using environment variables or a secure secrets management system."
+ import python
+ private import semmle.python.dataflow.new.DataFlow
+ import CleartextLoggingFlow::PathGraph
+ import semmle.python.security.dataflow.CleartextLoggingQuery
+ 
+ from
+   CleartextLoggingFlow::PathNode source, CleartextLoggingFlow::PathNode sink, string classification
+ where
+   CleartextLoggingFlow::flowPath(source, sink) and
+   classification = source.getNode().(Source).getClassification()
+ select sink.getNode(), source, sink, "This expression logs $@ as clear text.", source.getNode(),
+   "sensitive data (" + classification + ")"
