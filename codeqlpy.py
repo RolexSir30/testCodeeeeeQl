@@ -1,5 +1,12 @@
 import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for
+#
+##db_config = {
+    ##'host': 'localhost',
+    ##'user': 'root',
+    ##'password': 'aisin4AiLien',
+    ##'database': 'codeql_schema'
+##}
 
 app = Flask(name)
 
