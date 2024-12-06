@@ -1,28 +1,27 @@
 import mysql.connector
 from flask import Flask, render_template, request, redirect, url_for
 
-app = Flask(__name__)
+app = Flask(name)
 
-db_config = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'aisin4AiLien',
-    'database': 'codeql_schema'
-}
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # Récupération des données du formulaire
+        # Retrieve form data
         name = request.form['name']
         email = request.form['email']
         message = request.form['message']
 
-        # Connexion à la base de données et insertion des données
+        # Connection configuration with a hardcoded password
         try:
-            conn = mysql.connector.connect(**db_config)
+            conn = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                password="aisin4AiLien",  # <-- Hardcoded password used in an external sink
+                database="codeql_schema"
+            )
             cursor = conn.cursor()
 
-            # Créer la table si elle n'existe pas
+            # Create table if it doesn't exist
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS form_data (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -31,14 +30,14 @@ def index():
                     message TEXT NOT NULL
                 )
             ''')
-            # Insérer les données du formulaire
+            # Insert form data into the database
             cursor.execute('''
                 INSERT INTO form_data (name, email, message)
                 VALUES (%s, %s, %s)
             ''', (name, email, message))
             conn.commit()
         except mysql.connector.Error as err:
-            print(f"Erreur MySQL : {err}")
+            print(f"Database error: {err}")
         finally:
             cursor.close()
             conn.close()
@@ -47,10 +46,9 @@ def index():
 
     return render_template('form.html')
 
-# Route pour afficher un message de succès
 @app.route('/success')
 def success():
-    return "Formulaire soumis avec succès et enregistré dans la base de données !"
+    return "Form submitted successfully and stored in the database!"
 
-if __name__ == '__main__':
+if name == 'main':
     app.run(debug=True)
